@@ -39,13 +39,15 @@ export default function ProductPage() {
           } else if (fetchedProduct) {
             setProduct(fetchedProduct);
             if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
-              setSelectedVariant(fetchedProduct.variants.find(v => v.availableForSale) || fetchedProduct.variants[0]);
+              // Prioritize selecting a variant that is available for sale AND has stock
+              const initiallyAvailableVariant = fetchedProduct.variants.find(v => v.availableForSale && v.stock > 0);
+              setSelectedVariant(initiallyAvailableVariant || fetchedProduct.variants[0]);
             } else {
-              setSelectedVariant(null);
+              setSelectedVariant(null); // No variants for this product
             }
             document.title = `${fetchedProduct.name} - Shopify Headless Express`;
           } else {
-            setFetchError('Product not found.');
+            setFetchError('Product not found.'); // Should trigger notFound() via the other useEffect
           }
         })
         .catch(err => {
@@ -57,13 +59,15 @@ export default function ProductPage() {
         });
     } else {
       setIsLoading(false);
-      setFetchError('Product ID missing.');
+      setFetchError('Product ID missing.'); // Should trigger notFound()
     }
   }, [productSlug]);
 
   useEffect(() => {
-    // Trigger Next.js 404 page if product not found or critical API error
-    if (fetchError === 'Product not found.' || (fetchError && fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied"))) {
+    // Trigger Next.js 404 page if product not found, critical API error, or missing slug
+    if (fetchError === 'Product not found.' || 
+        (fetchError && fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied")) ||
+        fetchError === 'Product ID missing.') {
       notFound();
     }
   }, [fetchError]);
@@ -91,14 +95,16 @@ export default function ProductPage() {
     );
   }
 
-  if (fetchError && fetchError !== 'Product not found.' && !(fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied"))) {
+  // This check handles cases where fetchError occurred but wasn't one that should trigger a 404 (e.g. temporary network issue)
+  // It also handles if product is still null after loading for some unexpected reason.
+  if (fetchError && (fetchError !== 'Product not found.' && !(fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied"))&& fetchError !== 'Product ID missing.')) {
     return (
       <div className="page-width py-12 text-center">
         <h1 className="text-2xl font-semibold text-destructive">{fetchError}</h1>
         <p className="text-muted-foreground mt-2">
           This could be due to a temporary issue or incorrect Shopify configuration.
         </p>
-        {(fetchError.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || fetchError.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN") || fetchError.toLowerCase().includes("unauthorized") || fetchError.toLowerCase().includes("enotfound")) && (
+        {(fetchError.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || fetchError.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN") || fetchError.toLowerCase().includes("enotfound")) && (
            <p className="text-muted-foreground mt-1">
             <strong>Action:</strong> This suggests a configuration problem. Please check your <strong>server console</strong> for detailed logs from the Shopify library (they usually start with "[Shopify Lib Startup]" or "Error in shopifyFetch"). These logs appear when you restart your development server and can help confirm if your <code>.env.local</code> file is set up correctly.
           </p>
@@ -111,6 +117,8 @@ export default function ProductPage() {
   }
   
   if (!product) { 
+    // This case should ideally be caught by isLoading or fetchError leading to notFound().
+    // If reached, it means product is null after loading without a specific fetchError handled above.
     return (
         <div className="page-width py-12 text-center">
           <h1 className="text-2xl font-semibold">Product information is currently unavailable.</h1>
@@ -122,7 +130,10 @@ export default function ProductPage() {
       );
   }
   
+  // Product is loaded, now check variants and selectedVariant
   if (product.variants.length === 0 || !selectedVariant) {
+     // This means the product object exists, but it either has no variants defined,
+     // or somehow selectedVariant couldn't be set (e.g. if variants array was empty).
      return (
         <div className="page-width py-12 text-center">
           <h1 className="text-2xl font-semibold">{product.name}</h1>
@@ -136,6 +147,7 @@ export default function ProductPage() {
       );
   }
 
+  // If we reach here, product and selectedVariant are available
   return (
     <div className="page-width py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
@@ -166,11 +178,14 @@ export default function ProductPage() {
 
           <Separator />
           
-          <ProductVariantSelector
-            variants={product.variants}
-            selectedVariant={selectedVariant}
-            onVariantChange={setSelectedVariant}
-          />
+          {/* Render variant selector only if there's more than one variant to choose from */}
+          {product.variants.length > 1 && (
+            <ProductVariantSelector
+              variants={product.variants}
+              selectedVariant={selectedVariant}
+              onVariantChange={setSelectedVariant}
+            />
+          )}
           
           <AddToCartButton 
             product={product} 
