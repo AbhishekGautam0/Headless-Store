@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ShoppingCart } from 'lucide-react';
@@ -15,22 +16,26 @@ export function AddToCartButton({ product, selectedVariant, quantity = 1, childr
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    if (selectedVariant.stock > 0) {
+    // selectedVariant.stock should be quantityAvailable from Shopify
+    // selectedVariant.availableForSale is also important
+    if (selectedVariant.availableForSale && selectedVariant.stock > 0) {
       addToCart(product, selectedVariant, quantity);
     } else {
-      // Optionally, show a toast or message that item is out of stock
-      console.warn("Attempted to add out of stock item.");
+      // Toast is handled by addToCart if stock limit is hit
+      console.warn("Attempted to add out of stock or unavailable item.");
     }
   };
+
+  const isOutOfStock = !selectedVariant.availableForSale || selectedVariant.stock <= 0;
 
   return (
     <Button 
       onClick={handleAddToCart} 
-      disabled={selectedVariant.stock === 0 || props.disabled}
+      disabled={isOutOfStock || props.disabled}
       {...props}
     >
       <ShoppingCart className="mr-2 h-4 w-4" />
-      {selectedVariant.stock === 0 ? 'Out of Stock' : children || 'Add to Cart'}
+      {isOutOfStock ? 'Out of Stock' : children || 'Add to Cart'}
     </Button>
   );
 }

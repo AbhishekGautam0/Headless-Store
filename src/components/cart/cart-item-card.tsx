@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -7,8 +8,8 @@ import type { CartItem } from '@/lib/types';
 import { useCart } from './cart-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+// import { Separator } from '@/components/ui/separator'; // Not used
+// import { cn } from '@/lib/utils'; // Not used
 
 interface CartItemCardProps {
   item: CartItem;
@@ -18,9 +19,9 @@ export function CartItemCard({ item }: CartItemCardProps) {
   const { updateQuantity, removeFromCart } = useCart();
 
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity >= 1 && newQuantity <= item.selectedVariant.stock) {
+    if (newQuantity >= 1 && newQuantity <= item.selectedVariant.stock && item.selectedVariant.availableForSale) {
       updateQuantity(item.id, item.selectedVariant.id, newQuantity);
-    } else if (newQuantity > item.selectedVariant.stock) {
+    } else if (newQuantity > item.selectedVariant.stock && item.selectedVariant.availableForSale) {
       updateQuantity(item.id, item.selectedVariant.id, item.selectedVariant.stock);
     }
   };
@@ -28,19 +29,23 @@ export function CartItemCard({ item }: CartItemCardProps) {
   const incrementQuantity = () => handleQuantityChange(item.quantity + 1);
   const decrementQuantity = () => handleQuantityChange(item.quantity - 1);
 
-  const productImage = item.images.find(img => img.id === item.selectedVariant.imageId) || item.images[0];
+  // Find the image associated with the variant, or fallback to the first product image
+  const variantImage = item.selectedVariant.imageId 
+    ? item.images.find(img => img.id === item.selectedVariant.imageId) 
+    : null;
+  const displayImage = variantImage || item.images[0] || { src: 'https://placehold.co/100x100.png', alt: 'Product image unavailable' };
 
 
   return (
     <div className="flex py-4 space-x-4">
       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
         <Image
-          src={productImage.src}
-          alt={productImage.alt}
+          src={displayImage.src}
+          alt={displayImage.alt}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           fill
           className="object-cover"
-          data-ai-hint={productImage.dataAiHint || "product image"}
+          // data-ai-hint removed
         />
       </div>
 
@@ -48,7 +53,8 @@ export function CartItemCard({ item }: CartItemCardProps) {
         <div>
           <div className="flex justify-between text-base font-medium">
             <h3>
-              <Link href={`/products/${item.slug}`}>{item.name}</Link>
+              {/* Ensure item.slug exists. It should from product mapping. */}
+              <Link href={`/products/${item.slug || item.id}`}>{item.name}</Link>
             </h3>
             <p className="ml-4">${(item.selectedVariant.price * item.quantity).toFixed(2)}</p>
           </div>
@@ -67,8 +73,9 @@ export function CartItemCard({ item }: CartItemCardProps) {
               className="mx-2 h-8 w-12 text-center"
               min="1"
               max={item.selectedVariant.stock}
+              readOnly // It's better to control quantity via buttons
             />
-            <Button variant="outline" size="icon" onClick={incrementQuantity} disabled={item.quantity >= item.selectedVariant.stock} className="h-8 w-8">
+            <Button variant="outline" size="icon" onClick={incrementQuantity} disabled={item.quantity >= item.selectedVariant.stock || !item.selectedVariant.availableForSale} className="h-8 w-8">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -84,7 +91,11 @@ export function CartItemCard({ item }: CartItemCardProps) {
             </Button>
           </div>
         </div>
+         {!item.selectedVariant.availableForSale && (
+            <p className="text-xs text-destructive mt-1">This variant is no longer available.</p>
+        )}
       </div>
     </div>
   );
 }
+

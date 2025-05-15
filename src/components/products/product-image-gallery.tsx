@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import type { ProductImage as ProductImageType } from '@/lib/types'; // Renamed to avoid conflict
+import type { ProductImage as ProductImageType } from '@/lib/types';
 
 interface ProductImageGalleryProps {
   images: ProductImageType[];
@@ -13,22 +13,35 @@ interface ProductImageGalleryProps {
 export function ProductImageGallery({ images, productName }: ProductImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(images[0]);
 
-  if (!images || images.length === 0) {
-    return (
-      <div className="aspect-square w-full bg-muted rounded-lg flex items-center justify-center">
-        <p>No image available</p>
-      </div>
-    );
-  }
-  
-  // Ensure selectedImage is always valid
-  React.useEffect(() => {
-    if (!images.find(img => img.id === selectedImage?.id)) {
-      setSelectedImage(images[0]);
+  useEffect(() => {
+    // Ensure selectedImage is updated if images prop changes and current selectedImage is no longer valid
+    if (images && images.length > 0) {
+        const currentSelectedExists = images.find(img => img.id === selectedImage?.id);
+        if (!currentSelectedExists) {
+            setSelectedImage(images[0]);
+        } else if (!selectedImage) { // If selectedImage was null but images are now present
+            setSelectedImage(images[0]);
+        }
+    } else if (images && images.length === 0) {
+        setSelectedImage(undefined as any); // Explicitly set to undefined if no images
     }
   }, [images, selectedImage]);
 
 
+  if (!images || images.length === 0) {
+    return (
+      <div className="aspect-square w-full bg-muted rounded-lg flex items-center justify-center">
+        <Image 
+            src="https://placehold.co/600x600.png" 
+            alt="Placeholder image" 
+            width={600} 
+            height={600} 
+            className="object-cover" 
+        />
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col gap-4">
       <div className="aspect-square w-full relative overflow-hidden rounded-lg shadow-lg">
@@ -39,7 +52,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover transition-opacity duration-300 ease-in-out"
           priority
-          data-ai-hint={selectedImage?.dataAiHint || "product detail"}
+          // data-ai-hint removed
         />
       </div>
       {images.length > 1 && (
@@ -59,7 +72,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
                 fill
                 sizes="10vw"
                 className="object-cover"
-                data-ai-hint={image.dataAiHint || "thumbnail image"}
+                // data-ai-hint removed
               />
             </button>
           ))}
