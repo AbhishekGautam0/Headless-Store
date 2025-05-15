@@ -24,8 +24,8 @@ async function shopifyFetch<T>({
   const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
   const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-  const genericDomainPlaceholder = 'your-shop-name.myshopify.com'; // A generic placeholder
-  const genericTokenPlaceholder = 'your_public_storefront_access_token'; // A generic placeholder
+  const genericDomainPlaceholder = 'techifyservices.myshopify.com'; // Updated placeholder
+  const genericTokenPlaceholder = '26411d104ed09de75889b1bfa38573ab'; // Updated placeholder
 
   if (!currentShopifyDomain || currentShopifyDomain === genericDomainPlaceholder) {
     const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is missing or incorrect. 
@@ -209,6 +209,7 @@ export async function getProducts({
      // Check if the error message indicates an environment variable issue propagated from shopifyFetch
     if (errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN")) {
       console.error("Error in getProducts (propagated from shopifyFetch):", errorMessage);
+      // Propagate the specific error message from shopifyFetch
       return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMessage };
     }
     // Handle other Shopify API errors
