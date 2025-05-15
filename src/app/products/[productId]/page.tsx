@@ -39,9 +39,17 @@ export default function ProductPage() {
           } else if (fetchedProduct) {
             setProduct(fetchedProduct);
             if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
-              // Prioritize selecting a variant that is available for sale
-              const initiallyAvailableVariant = fetchedProduct.variants.find(v => v.availableForSale);
-              setSelectedVariant(initiallyAvailableVariant || fetchedProduct.variants[0]); // Fallback to the first variant
+              // Priority 1: Available for sale AND has stock
+              let bestVariant = fetchedProduct.variants.find(v => v.availableForSale && v.stock > 0);
+              if (!bestVariant) {
+                // Priority 2: Available for sale (even if stock is 0, to show its details)
+                bestVariant = fetchedProduct.variants.find(v => v.availableForSale);
+              }
+              if (!bestVariant) {
+                // Priority 3: Just the first variant in the list as a last resort
+                bestVariant = fetchedProduct.variants[0];
+              }
+              setSelectedVariant(bestVariant);
             } else {
               setSelectedVariant(null); // No variants for this product
             }
@@ -198,3 +206,5 @@ export default function ProductPage() {
     </div>
   );
 }
+
+    

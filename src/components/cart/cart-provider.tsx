@@ -50,63 +50,59 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = useCallback((product: Product, variant: Variant, quantity: number = 1) => {
     let toastProps: { title: string; description: string; variant?: 'default' | 'destructive' } | null = null;
+    let shouldOpenCart = false;
 
-    setCartItems(prevItems => {
-      const existingItemIndex = prevItems.findIndex(
-        item => item.id === product.id && item.selectedVariant.id === variant.id
-      );
+    if (!variant.availableForSale) {
+      toastProps = { title: "Not Available", description: `${product.name} (${variant.name}) is currently not available for purchase.`, variant: "destructive"};
+    } else if (variant.stock <= 0) {
+      toastProps = { title: "Out of Stock", description: `${product.name} (${variant.name}) is currently out of stock.`, variant: "destructive"};
+    } else {
+      setCartItems(prevItems => {
+        const existingItemIndex = prevItems.findIndex(
+          item => item.id === product.id && item.selectedVariant.id === variant.id
+        );
 
-      if (existingItemIndex > -1) {
-        const updatedItems = [...prevItems];
-        const currentItem = updatedItems[existingItemIndex];
-        const newQuantity = currentItem.quantity + quantity;
-        
-        if (!variant.availableForSale) {
-          toastProps = { title: "Not Available", description: `${product.name} (${variant.name}) is currently not available.`, variant: "destructive"};
-          return updatedItems; // Do not update quantity
+        if (existingItemIndex > -1) {
+          const updatedItems = [...prevItems];
+          const currentItem = updatedItems[existingItemIndex];
+          const newQuantity = currentItem.quantity + quantity;
+          
+          if (newQuantity <= variant.stock) {
+              updatedItems[existingItemIndex].quantity = newQuantity;
+              toastProps = { title: "Cart Updated", description: `${quantity} more ${product.name} (${variant.name}) added. Total: ${newQuantity}.` };
+              shouldOpenCart = true;
+          } else {
+              if (currentItem.quantity < variant.stock) {
+                   updatedItems[existingItemIndex].quantity = variant.stock;
+                   toastProps = { title: "Stock Limit Reached", description: `Added up to available stock for ${product.name} (${variant.name}). Total in cart: ${variant.stock}.`, variant: "destructive" };
+                   shouldOpenCart = true;
+              } else {
+                  toastProps = { title: "Max Stock in Cart", description: `You already have the maximum available stock for ${product.name} (${variant.name}) in your cart.`, variant: "destructive" };
+              }
+          }
+          return updatedItems;
+        } else { // Adding new item
+          if (quantity <= variant.stock) {
+              toastProps = { title: "Added to Cart", description: `${quantity} x ${product.name} (${variant.name}) added to cart.` };
+              shouldOpenCart = true;
+              return [...prevItems, { ...product, selectedVariant: variant, quantity }];
+          } else { // Trying to add more than available stock for a new item
+               toastProps = { title: "Stock Limit Reached", description: `Only ${variant.stock} of ${product.name} (${variant.name}) available. Added ${variant.stock} to cart.`, variant: "destructive" };
+               shouldOpenCart = true;
+               return [...prevItems, { ...product, selectedVariant: variant, quantity: variant.stock }];
+          }
         }
-        if (newQuantity <= variant.stock) {
-            updatedItems[existingItemIndex].quantity = newQuantity;
-            toastProps = { title: "Cart Updated", description: `${product.name} (${variant.name}) quantity increased.` };
-        } else {
-            // If trying to add more than available stock, add up to stock.
-            if (currentItem.quantity < variant.stock) {
-                 updatedItems[existingItemIndex].quantity = variant.stock;
-                 toastProps = { title: "Stock Limit Reached", description: `Added up to available stock for ${product.name} (${variant.name}). Max stock is ${variant.stock}.`, variant: "destructive" };
-            } else {
-                toastProps = { title: "Stock Limit", description: `Cannot add more ${product.name} (${variant.name}). Max stock is ${variant.stock}.`, variant: "destructive" };
-            }
-        }
-        return updatedItems;
-      } else {
-        if (!variant.availableForSale) {
-            toastProps = { title: "Not Available", description: `${product.name} (${variant.name}) is currently not available.`, variant: "destructive"};
-            return prevItems;
-        }
-        if (quantity <= variant.stock) {
-            toastProps = { title: "Added to Cart", description: `${product.name} (${variant.name}) added to cart.` };
-            return [...prevItems, { ...product, selectedVariant: variant, quantity }];
-        } else {
-             // If trying to add more than available stock, add up to stock.
-             if (variant.stock > 0) {
-                toastProps = { title: "Stock Limit Reached", description: `Added up to available stock for ${product.name} (${variant.name}). Adding ${variant.stock}.`, variant: "destructive" };
-                return [...prevItems, { ...product, selectedVariant: variant, quantity: variant.stock }];
-             } else {
-                toastProps = { title: "Out of Stock", description: `${product.name} (${variant.name}) is out of stock.`, variant: "destructive" };
-                return prevItems;
-             }
-        }
-      }
-    });
+      });
+    }
 
     if (toastProps) {
-      const finalToastProps = toastProps;
-      setTimeout(() => {
+      const finalToastProps = toastProps; // Capture current value
+      setTimeout(() => { // Defer toast to next tick
         toast(finalToastProps);
+        if (shouldOpenCart) {
+          setIsCartOpen(true);
+        }
       }, 0);
-    }
-    if (toastProps?.variant !== 'destructive' || toastProps.title === "Cart Updated" || toastProps.title === "Stock Limit Reached") { // Open cart unless it was a hard "Not Available" or "Out of Stock"
-        setIsCartOpen(true);
     }
   }, [toast]);
 
@@ -121,10 +117,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         item => !(item.id === productId && item.selectedVariant.id === variantId)
       );
     });
-
     if (itemRemovedName) {
       const finalItemName = itemRemovedName;
-      setTimeout(() => {
+       setTimeout(() => {
         toast({ title: "Item Removed", description: `${finalItemName} removed from cart.` });
       }, 0);
     }
@@ -137,18 +132,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       prevItems.map(item => {
         if (item.id === productId && item.selectedVariant.id === variantId) {
           if (!item.selectedVariant.availableForSale) {
-            toastMessagesCollector.push({ title: "Not Available", description: `${item.name} (${item.selectedVariant.name}) is no longer available for sale.`, variant: "destructive" });
-            return item; // Keep current quantity or remove if 0 by filter below
+            toastMessagesCollector.push({ title: "Not Available", description: `${item.name} (${item.selectedVariant.name}) is no longer available for sale. Quantity not changed.`, variant: "destructive" });
+            return item; 
           }
           if (quantity > 0 && quantity <= item.selectedVariant.stock) {
             toastMessagesCollector.push({ title: "Quantity Updated", description: `${item.name} (${item.selectedVariant.name}) quantity set to ${quantity}.` });
             return { ...item, quantity };
           } else if (quantity > item.selectedVariant.stock) {
-            toastMessagesCollector.push({ title: "Stock Limit", description: `Max stock for ${item.name} (${item.selectedVariant.name}) is ${item.selectedVariant.stock}. Set to max.`, variant: "destructive" });
+            toastMessagesCollector.push({ title: "Stock Limit", description: `Max stock for ${item.name} (${item.selectedVariant.name}) is ${item.selectedVariant.stock}. Quantity set to ${item.selectedVariant.stock}.`, variant: "destructive" });
             return { ...item, quantity: item.selectedVariant.stock }; // Set to max stock
           } else { 
-             // Quantity <= 0, will be filtered out. Can add a "removed" toast if desired.
-             // For now, implicit removal by filter.
+            toastMessagesCollector.push({ title: "Item Removed", description: `${item.name} (${item.selectedVariant.name}) removed due to quantity set to 0 or less.`});
             return { ...item, quantity: 0 }; // Mark for removal
           }
         }
@@ -199,3 +193,5 @@ export const useCart = () => {
   }
   return context;
 };
+
+    

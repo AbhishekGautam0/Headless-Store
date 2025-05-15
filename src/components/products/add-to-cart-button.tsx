@@ -15,25 +15,29 @@ interface AddToCartButtonProps extends ButtonProps {
 export function AddToCartButton({ product, selectedVariant, quantity = 1, children, ...props }: AddToCartButtonProps) {
   const { addToCart } = useCart();
 
-  const handleAddToCart = () => {
-    if (selectedVariant.availableForSale) { // Relying primarily on availableForSale
-      addToCart(product, selectedVariant, quantity);
-    } else {
-      console.warn("Attempted to add unavailable item.");
-      // Toast for "unavailable" could be added in useCart or here if preferred
-    }
-  };
+  // Determine if the variant can truly be added to cart
+  const canAddToCart = selectedVariant.availableForSale && selectedVariant.stock > 0;
 
-  const isUnavailable = !selectedVariant.availableForSale;
+  // Determine the button text based on availability and stock
+  let buttonText = 'Add to Cart';
+  if (!selectedVariant.availableForSale) {
+    buttonText = 'Not Available';
+  } else if (selectedVariant.stock <= 0) {
+    buttonText = 'Out of Stock';
+  }
+  
+  const isDisabled = !canAddToCart || props.disabled;
 
   return (
     <Button 
-      onClick={handleAddToCart} 
-      disabled={isUnavailable || props.disabled} // props.disabled allows external override
+      onClick={() => addToCart(product, selectedVariant, quantity)} 
+      disabled={isDisabled}
       {...props}
     >
       <ShoppingCart className="mr-2 h-4 w-4" />
-      {children ? children : (isUnavailable ? 'Out of Stock' : 'Add to Cart')}
+      {children ? children : buttonText}
     </Button>
   );
 }
+
+    
