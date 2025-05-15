@@ -1,22 +1,27 @@
+'use client';
+
+import { useEffect } from 'react'; // Added useEffect
 import { Banner } from '@/components/shared/banner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import type { Metadata } from 'next';
+// import type { Metadata } from 'next'; // Metadata type import no longer needed here
 import { Mail, Phone, MapPin } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Contact Us - Shopify Headless Express',
-  description: 'Get in touch with us for any inquiries or support.',
-};
+// Metadata export removed as this is a Client Component.
+// Page title will be set using useEffect.
 
 export default function ContactPage() {
-  // This is a UI-only form. For actual submission, use Server Actions or an API.
+  useEffect(() => {
+    document.title = 'Contact Us - Shopify Headless Express';
+  }, []);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     alert('Form submitted (demo only)!');
+    (event.target as HTMLFormElement).reset();
   };
 
   return (
@@ -59,24 +64,24 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="John" required />
+                    <Input id="firstName" name="firstName" placeholder="John" required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Doe" required />
+                    <Input id="lastName" name="lastName" placeholder="Doe" required />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john.doe@example.com" required />
+                  <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="Question about an order" />
+                  <Input id="subject" name="subject" placeholder="Question about an order" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" placeholder="Your message..." rows={5} required />
+                  <Textarea id="message" name="message" placeholder="Your message..." rows={5} required />
                 </div>
                 <Button type="submit" className="w-full">Send Message</Button>
               </form>
