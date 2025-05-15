@@ -24,10 +24,8 @@ async function shopifyFetch<T>({
   const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
   const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-  const genericDomainPlaceholder = 'techifyservices.myshopify.com';
-  const genericTokenPlaceholder = '26411d104ed09de75889b1bfa38573ab';
-
-  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com' /* old placeholder */ || currentShopifyDomain === genericDomainPlaceholder /* new placeholder, but only if it's NOT the actual domain */ && currentShopifyDomain !== 'techifyservices.myshopify.com') {
+  // Simplified checks:
+  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com') {
     const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is missing or incorrect. 
     Current value from process.env: '${currentShopifyDomain}'.
     ➡️ Please ensure your .env.local file exists in the project root, contains 'NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=your-actual-shop.myshopify.com', and that you have RESTARTED your development server.`;
@@ -37,7 +35,7 @@ async function shopifyFetch<T>({
         body: { errors: [{ message: errorMessage }] } as any 
     };
   }
-  if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token' /* old placeholder */ || currentShopifyToken === genericTokenPlaceholder /* new placeholder, but only if it's NOT the actual token */ && currentShopifyToken !== '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') {
+  if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token') {
     const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN is missing or incorrect. 
     Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'.
     ➡️ Please ensure your .env.local file exists in the project root, contains your actual **Public Storefront Access Token** (usually starts with 'shpat_'), and that you have RESTARTED your development server.`;
@@ -205,7 +203,20 @@ export async function getProducts({
   availabilityFilter?: 'all' | 'in-stock' | 'out-of-stock';
 }): Promise<{ products: Product[]; pageInfo: PageInfo; error?: string }> {
   
-  // Construct the Shopify query string
+  const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
+  const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+
+  // Initial check, primarily to decide if we can even attempt a fetch or should use mock data.
+  // shopifyFetch will do a more detailed check.
+  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com' ||
+      !currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token') {
+    const errorMsg = `Error in getProducts: Shopify domain or token is not properly configured. 
+    Domain from env: '${currentShopifyDomain}', Token from env: '${currentShopifyToken ? '********' : 'undefined'}'. 
+    Please check your .env.local file and restart your server. Using mock data as fallback.`;
+    console.error(errorMsg);
+    return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMsg };
+  }
+  
   let shopifyApiQueryString = textQuery || '';
 
   if (availabilityFilter === 'in-stock') {
@@ -216,8 +227,6 @@ export async function getProducts({
     shopifyApiQueryString = shopifyApiQueryString ? `(${shopifyApiQueryString}) AND ${stockFilter}` : stockFilter;
   }
   
-  // If after all constructions, shopifyApiQueryString is empty, set it to null for the API call
-  // (Shopify GraphQL expects null for no query, not empty string for some fields)
   const finalQueryForApi = shopifyApiQueryString === '' ? null : shopifyApiQueryString;
 
   const response = await shopifyFetch<{ data?: { products: { edges: Array<{ node: ShopifyProductNode, cursor: string }>, pageInfo: PageInfo } }, errors?: Array<{message: string, extensions?: any}> }>({
@@ -228,8 +237,10 @@ export async function getProducts({
   if (response.body.errors && response.body.errors.length > 0) {
     const primaryError = response.body.errors[0];
     let errorMessage = primaryError.message;
+     // Check if the error message indicates a critical config issue already handled by shopifyFetch
     if (errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN")) {
       console.error("Error in getProducts (propagated from shopifyFetch):", errorMessage);
+      // Fallback to mock data as shopifyFetch already indicated a critical setup error
       return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMessage };
     }
     console.error("Error from Shopify API in getProducts:", errorMessage, JSON.stringify(response.body.errors, null, 2));
@@ -302,13 +313,11 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
   const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
   const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com') {
-    const errorMsg = `Error in getProductByHandle: Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured in your .env.local file. Current value from process.env: '${currentShopifyDomain}'. Please set it (e.g., your-shop.myshopify.com) and restart your server.`;
-    console.error(errorMsg);
-    return { product: null, error: errorMsg };
-  }
-  if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token') {
-     const errorMsg = `Error in getProductByHandle: Shopify storefront access token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured in your .env.local file. Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'. Please set it and restart your server.`;
+  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com' ||
+      !currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token') {
+    const errorMsg = `Error in getProductByHandle: Shopify domain or token is not properly configured. 
+    Domain from env: '${currentShopifyDomain}', Token from env: '${currentShopifyToken ? '********' : 'undefined'}'. 
+    Please check .env.local and restart your server.`;
     console.error(errorMsg);
     return { product: null, error: errorMsg };
   }
@@ -321,6 +330,7 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
   if (response.body.errors && response.body.errors.length > 0) {
     const primaryError = response.body.errors[0];
     let errorMessage = primaryError.message;
+    // Check if the error message indicates a critical config issue already handled by shopifyFetch
     if (errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN")) {
       console.error(`Error in getProductByHandle for ${handle} (propagated from shopifyFetch):`, errorMessage);
       return { product: null, error: errorMessage };
@@ -336,12 +346,11 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
   }
 
   if (!response.body.data.productByHandle) {
-    // This is a valid scenario (product not found by handle), not necessarily an API error.
-    // Consider if a specific error message for "not found" is desired or if null is sufficient.
-    // For now, matching previous behavior of returning null with a generic error for the console.
     const errorMsg = `Product with handle '${handle}' not found or issue with Shopify API response in getProductByHandle.`;
-    console.warn(errorMsg); // Warn instead of error for a 404-like scenario
+    console.warn(errorMsg); 
     return { product: null, error: `Product with handle '${handle}' not found.` };
   }
   return { product: mapShopifyProductToInternal(response.body.data.productByHandle) };
 }
+
+    
