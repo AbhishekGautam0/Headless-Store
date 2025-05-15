@@ -46,7 +46,15 @@ export default async function HomePage() {
         <div className="page-width">
           <h2 className="text-3xl font-bold text-center mb-10">Featured Products</h2>
           {error && (
-            <p className="text-center text-destructive">Error loading products: {error}</p>
+            <div className="text-center text-destructive bg-destructive/10 p-4 rounded-md">
+              <p className="font-semibold">Error loading featured products:</p>
+              <p className="text-sm">{error}</p>
+              {error.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") && (
+                <p className="text-sm mt-2">
+                  <strong>Action:</strong> Please check your <strong>server console</strong> for logs starting with "[Shopify Lib Startup]" after restarting the server. This indicates if your <code>.env.local</code> file is read correctly.
+                </p>
+              )}
+            </div>
           )}
           {!error && featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -80,3 +88,4 @@ export default async function HomePage() {
     </>
   );
 }
+

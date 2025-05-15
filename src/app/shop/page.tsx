@@ -31,10 +31,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (error) {
     return (
       <div className="page-width py-12 text-center">
-        <h1 className="text-2xl font-semibold text-destructive">Error loading products</h1>
+        <h1 className="text-2xl font-semibold text-destructive">Error Loading Products</h1>
         <p className="text-muted-foreground mt-2">{error}</p>
-        <p className="text-muted-foreground mt-2">
-          Please ensure your Shopify integration is configured correctly in <code>.env.local</code> and try again.
+        <p className="text-muted-foreground mt-4">
+          Please ensure your Shopify integration is configured correctly in <code>.env.local</code>.
+        </p>
+        <p className="text-muted-foreground mt-1">
+          <strong>Action:</strong> Check your <strong>server console</strong> for logs starting with "[Shopify Lib Startup]" or "Error in shopifyFetch" immediately after restarting your development server. This will show if the environment variables are being loaded.
         </p>
          <Button asChild className="mt-6">
           <Link href="/">Go to Homepage</Link>
@@ -86,3 +89,4 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     </div>
   );
 }
+

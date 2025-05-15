@@ -32,7 +32,7 @@ export default function ProductPage() {
         .then(({ product: fetchedProduct, error: apiError }) => {
           if (apiError) {
             console.error("API Error fetching product:", apiError);
-            setFetchError(`Failed to load product: ${apiError}`);
+            setFetchError(`Failed to load product details: ${apiError}`);
             if (apiError.toLowerCase().includes('not found') || apiError.toLowerCase().includes('unauthorized')) {
                  // Let notFound handle specific cases, or handle gracefully
             }
@@ -63,7 +63,8 @@ export default function ProductPage() {
 
   useEffect(() => {
     // Trigger Next.js 404 page if product not found or critical API error
-    if (fetchError === 'Product not found.' || (fetchError && fetchError.includes("UNAUTHORIZED"))) {
+    if (fetchError === 'Product not found.' || (fetchError && fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied"))) {
+        // More specific check for the UNAUTHORIZED error from our shopify.ts
       notFound();
     }
   }, [fetchError]);
@@ -91,13 +92,18 @@ export default function ProductPage() {
     );
   }
 
-  if (fetchError && fetchError !== 'Product not found.' && !fetchError.includes("UNAUTHORIZED")) {
+  if (fetchError && fetchError !== 'Product not found.' && !(fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied"))) {
     return (
       <div className="page-width py-12 text-center">
         <h1 className="text-2xl font-semibold text-destructive">{fetchError}</h1>
         <p className="text-muted-foreground mt-2">
-          Please try again later or contact support.
+          This could be due to a temporary issue or incorrect Shopify configuration.
         </p>
+        {fetchError.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") && (
+           <p className="text-muted-foreground mt-1">
+            <strong>Action:</strong> Check your <strong>server console</strong> for logs starting with "[Shopify Lib Startup]" or "Error in shopifyFetch" immediately after restarting your development server. This will show if the environment variables are being loaded from <code>.env.local</code>.
+          </p>
+        )}
          <Button asChild className="mt-6">
           <Link href="/shop">Go to Shop</Link>
         </Button>
@@ -182,3 +188,4 @@ export default function ProductPage() {
     </div>
   );
 }
+
