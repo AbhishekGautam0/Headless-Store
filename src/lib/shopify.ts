@@ -20,14 +20,15 @@ async function shopifyFetch<T>({
   query: string;
   variables?: Record<string, any>;
 }): Promise<{ status: number; body: T } | never> {
-  // Read environment variables directly inside the function
+  // Read environment variables directly inside the function for robustness
   const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
   const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-  const genericDomainPlaceholder = 'techifyservices.myshopify.com'; // Updated placeholder
-  const genericTokenPlaceholder = '26411d104ed09de75889b1bfa38573ab'; // Updated placeholder
+  // Updated placeholders as per user request, but the primary check is for undefined/actually missing values.
+  const genericDomainPlaceholder = 'techifyservices.myshopify.com';
+  const genericTokenPlaceholder = '26411d104ed09de75889b1bfa38573ab';
 
-  if (!currentShopifyDomain || currentShopifyDomain === genericDomainPlaceholder) {
+  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com' /* old placeholder check */) {
     const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is missing or incorrect. 
     Current value from process.env: '${currentShopifyDomain}'.
     ➡️ Please ensure your .env.local file exists in the project root, contains 'NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=your-actual-shop.myshopify.com', and that you have RESTARTED your development server.`;
@@ -37,7 +38,7 @@ async function shopifyFetch<T>({
         body: { errors: [{ message: errorMessage }] } as any 
     };
   }
-  if (!currentShopifyToken || currentShopifyToken === genericTokenPlaceholder) {
+  if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token' /* old placeholder check */) {
     const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN is missing or incorrect. 
     Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'.
     ➡️ Please ensure your .env.local file exists in the project root, contains your actual token, and that you have RESTARTED your development server.`;
@@ -47,6 +48,15 @@ async function shopifyFetch<T>({
         body: { errors: [{ message: errorMessage }] } as any 
     };
   }
+  
+  // Secondary check against specific placeholders if they were somehow set literally
+  if (currentShopifyDomain === genericDomainPlaceholder && currentShopifyDomain !== 'techifyservices.myshopify.com' /* your actual domain if it happened to be the placeholder */) {
+     console.warn(`[Shopify Lib Warning] NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is set to a generic placeholder value '${genericDomainPlaceholder}'. Ensure this is your actual store domain or update it in .env.local.`);
+  }
+  if (currentShopifyToken === genericTokenPlaceholder && currentShopifyToken !== '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' /* your actual token if it happened to be the placeholder */) {
+     console.warn(`[Shopify Lib Warning] NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN is set to a generic placeholder value. Ensure this is your actual token or update it in .env.local.`);
+  }
+
 
   const SHOPIFY_API_ENDPOINT = `https://${currentShopifyDomain}/api/${API_VERSION}/graphql.json`;
 

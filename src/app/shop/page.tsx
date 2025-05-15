@@ -33,12 +33,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
       <div className="page-width py-12 text-center">
         <h1 className="text-2xl font-semibold text-destructive">Error Loading Products</h1>
         <p className="text-muted-foreground mt-2">{error}</p>
-        <p className="text-muted-foreground mt-4">
-          Please ensure your Shopify integration is configured correctly in <code>.env.local</code>.
-        </p>
-        <p className="text-muted-foreground mt-1">
-          <strong>Action:</strong> Check your <strong>server console</strong> for logs starting with "[Shopify Lib Startup]" or "Error in shopifyFetch" immediately after restarting your development server. This will show if the environment variables are being loaded.
-        </p>
+        {(error.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || error.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN") || error.toLowerCase().includes("unauthorized") || error.toLowerCase().includes("enotfound")) && (
+          <p className="text-muted-foreground mt-4">
+            <strong>Action:</strong> This appears to be a configuration issue. Please check your <strong>server console</strong> for detailed logs (they start with "[Shopify Lib Startup]" or "Error in shopifyFetch") immediately after restarting your development server. This will show if the environment variables in <code>.env.local</code> are being loaded and used correctly.
+          </p>
+        )}
          <Button asChild className="mt-6">
           <Link href="/">Go to Homepage</Link>
         </Button>
@@ -89,4 +88,3 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     </div>
   );
 }
-

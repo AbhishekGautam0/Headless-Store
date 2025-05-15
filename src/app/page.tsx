@@ -49,9 +49,9 @@ export default async function HomePage() {
             <div className="text-center text-destructive bg-destructive/10 p-4 rounded-md">
               <p className="font-semibold">Error loading featured products:</p>
               <p className="text-sm">{error}</p>
-              {error.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") && (
+              {(error.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || error.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN") || error.toLowerCase().includes("unauthorized") || error.toLowerCase().includes("enotfound")) && (
                 <p className="text-sm mt-2">
-                  <strong>Action:</strong> Please check your <strong>server console</strong> for logs starting with "[Shopify Lib Startup]" after restarting the server. This indicates if your <code>.env.local</code> file is read correctly.
+                  <strong>Action:</strong> This seems to be a configuration issue. Please check your <strong>server console</strong> for detailed logs (they start with "[Shopify Lib Startup]" or "Error in shopifyFetch") immediately after restarting your development server. This will help verify if your <code>.env.local</code> file is being read correctly and if the credentials are valid.
                 </p>
               )}
             </div>
@@ -63,7 +63,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            !error && <p className="text-center text-muted-foreground">Could not load featured products at this time.</p>
+            !error && <p className="text-center text-muted-foreground">Could not load featured products at this time. If this persists, check server console for errors.</p>
           )}
           <div className="text-center mt-10">
             <Button asChild size="lg" variant="secondary">
@@ -88,4 +88,3 @@ export default async function HomePage() {
     </>
   );
 }
-
