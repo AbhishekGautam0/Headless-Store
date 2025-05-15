@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { ProductCard } from '@/components/products/product-card';
 import { Button } from '@/components/ui/button';
@@ -15,20 +16,32 @@ const ITEMS_PER_PAGE = 12;
 interface ShopPageProps {
   searchParams?: {
     cursor?: string;
-    direction?: 'next' | 'prev'; // We'll simplify 'prev' for now
+    direction?: 'next' | 'prev';
   };
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
   const cursor = searchParams?.cursor;
-  // Shopify's primary pagination is forward with `after: cursor`. 
-  // Implementing true 'previous' with cursors requires `before: cursor` and potentially `last: N` items.
-  // For simplicity, "previous" will link to the start or not be shown if on the first pseudo-page.
 
-  const { products: productsToShow, pageInfo } = await getProducts({
+  const { products: productsToShow, pageInfo, error } = await getProducts({
     first: ITEMS_PER_PAGE,
     after: cursor, 
   });
+
+  if (error) {
+    return (
+      <div className="page-width py-12 text-center">
+        <h1 className="text-2xl font-semibold text-destructive">Error loading products</h1>
+        <p className="text-muted-foreground mt-2">{error}</p>
+        <p className="text-muted-foreground mt-2">
+          Please ensure your Shopify integration is configured correctly in <code>.env.local</code> and try again.
+        </p>
+         <Button asChild className="mt-6">
+          <Link href="/">Go to Homepage</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="page-width py-8">
@@ -58,21 +71,12 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
       )}
 
       <div className="flex justify-center items-center space-x-4 mt-12">
-        {/* A true 'previous' button with Shopify cursors is complex. 
-            This link takes to the first page. 
-            A more robust solution would store previous cursors or use 'before' cursors if needed.
-        */}
-        {cursor && ( // Show "Previous" if not on the first page (i.e., a cursor exists)
+        {cursor && ( 
           <Button asChild variant="outline">
             <Link href={`/shop`}>First Page</Link> 
           </Button>
         )}
         
-        {/* Basic page info - could be enhanced if total count was easily available */}
-        {/* <span className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages} // This is harder with cursor pagination
-        </span> */}
-
         {pageInfo.hasNextPage && pageInfo.endCursor && (
           <Button asChild variant="outline">
             <Link href={`/shop?cursor=${pageInfo.endCursor}&direction=next`}>Next</Link>

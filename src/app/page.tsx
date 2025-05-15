@@ -1,9 +1,10 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/shared/banner';
 import { ImageWithText } from '@/components/shared/image-with-text';
 import { ProductCard } from '@/components/products/product-card';
-import { getProducts } from '@/lib/shopify'; // Changed from mock-data
+import { getProducts } from '@/lib/shopify';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -12,8 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  // Fetch featured products from Shopify
-  const { products: featuredProducts, pageInfo } = await getProducts({ first: 4 });
+  const { products: featuredProducts, error } = await getProducts({ first: 4 });
 
   return (
     <>
@@ -45,14 +45,17 @@ export default async function HomePage() {
       <section className="py-12 md:py-20 bg-muted/30">
         <div className="page-width">
           <h2 className="text-3xl font-bold text-center mb-10">Featured Products</h2>
-          {featuredProducts.length > 0 ? (
+          {error && (
+            <p className="text-center text-destructive">Error loading products: {error}</p>
+          )}
+          {!error && featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground">Could not load featured products at this time.</p>
+            !error && <p className="text-center text-muted-foreground">Could not load featured products at this time.</p>
           )}
           <div className="text-center mt-10">
             <Button asChild size="lg" variant="secondary">
