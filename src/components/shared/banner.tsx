@@ -26,7 +26,7 @@ export function Banner({ title, subtitle, imageUrl, imageAlt, imageAiHint, child
         />
       )}
       {hasImage && <div className="absolute inset-0 bg-black/50 z-0"></div>}
-      <div className="container relative z-10 text-center">
+      <div className="page-width relative z-10 text-center">
         <h1 className={`text-4xl md:text-5xl font-bold ${hasImage ? 'text-white' : 'text-foreground'}`}>{title}</h1>
         {subtitle && <p className={`mt-4 text-lg md:text-xl ${hasImage ? 'text-gray-200' : 'text-muted-foreground'}`}>{subtitle}</p>}
         {children && <div className="mt-8">{children}</div>}

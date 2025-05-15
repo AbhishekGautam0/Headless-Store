@@ -1,7 +1,7 @@
 'use client'; // Needs to be client component for useState (variant selection) and useCart
 
 import { useEffect, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams } from 'next/navigation'; // `notFound` from `next/navigation` is for server components primarily
 import { getProductBySlug } from '@/lib/mock-data';
 import type { Product, Variant } from '@/lib/types';
 import { ProductImageGallery } from '@/components/products/product-image-gallery';
@@ -10,6 +10,8 @@ import { AddToCartButton } from '@/components/products/add-to-cart-button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton'; // For loading state
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // No specific metadata function for client components in App Router easily
 // Metadata would typically be in a server component parent or generateMetadata if this was server rendered.
@@ -29,9 +31,8 @@ export default function ProductPage() {
         setProduct(fetchedProduct);
         setSelectedVariant(fetchedProduct.variants[0]); // Default to first variant
       } else {
-        // Handle product not found, though `notFound()` should be called from server component if possible
-        // For client component, we might redirect or show a not found message
-        console.error("Product not found"); 
+        // Product not found, setProduct to null to trigger not found message
+        setProduct(null);
       }
       setIsLoading(false);
     }
@@ -39,7 +40,7 @@ export default function ProductPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="page-width py-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>
             <Skeleton className="aspect-square w-full rounded-lg" />
@@ -59,22 +60,54 @@ export default function ProductPage() {
     );
   }
 
-  if (!product || !selectedVariant) {
-     // This is a client-side not found. For proper 404, it's better handled server-side.
-     // For now, just returning a message. In a real app, you might redirect or use error boundaries.
+  if (!product) {
     return (
-        <div className="container mx-auto py-12 text-center">
+        <div className="page-width py-12 text-center">
           <h1 className="text-2xl font-semibold">Product not found</h1>
           <p className="text-muted-foreground mt-2">
             Sorry, we couldn&apos;t find the product you&apos;re looking for.
           </p>
+           <Button asChild className="mt-6">
+            <Link href="/shop">Go to Shop</Link>
+          </Button>
+        </div>
+      );
+  }
+  
+  // Ensure selectedVariant is set if product is available but variant wasn't (e.g. after initial load)
+  if (product && !selectedVariant && product.variants.length > 0) {
+    setSelectedVariant(product.variants[0]);
+    return null; // Re-render will occur with selectedVariant
+  }
+  
+  if (!selectedVariant && product.variants.length === 0) {
+     return (
+        <div className="page-width py-12 text-center">
+          <h1 className="text-2xl font-semibold">{product.name}</h1>
+          <p className="text-muted-foreground mt-2">
+            This product currently has no variants available.
+          </p>
+           <Button asChild className="mt-6">
+            <Link href="/shop">Go to Shop</Link>
+          </Button>
+        </div>
+      );
+  }
+  
+  if (!selectedVariant) { // Should ideally not be reached if product exists and has variants
+      return (
+        <div className="page-width py-12 text-center">
+          <h1 className="text-2xl font-semibold">Variant not available</h1>
+           <Button asChild className="mt-6">
+            <Link href="/shop">Go to Shop</Link>
+          </Button>
         </div>
       );
   }
 
 
   return (
-    <div className="container mx-auto max-w-5xl py-8 px-4">
+    <div className="page-width py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
         <ProductImageGallery images={product.images} productName={product.name} />
         <div className="space-y-6 py-4">

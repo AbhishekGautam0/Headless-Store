@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { AlertTriangle, ShoppingBag } from 'lucide-react';
-import type { Metadata } from 'next';
+// import type { Metadata } from 'next'; // Metadata is not used in client components this way
 
 // Client component, so metadata is illustrative or would be set by a parent server component
 // export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function CheckoutPage() {
 
   if (cartCount === 0) {
     return (
-      <div className="container py-12 text-center">
+      <div className="page-width py-12 text-center">
         <ShoppingBag className="mx-auto h-24 w-24 text-muted-foreground mb-6" strokeWidth={1} />
         <h1 className="text-3xl font-semibold mb-4">Your Cart is Empty</h1>
         <p className="text-muted-foreground mb-8">
@@ -42,7 +42,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="container py-8 md:py-12">
+    <div className="page-width py-8 md:py-12">
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center">Checkout</h1>
       
       <div className="grid md:grid-cols-3 gap-8">

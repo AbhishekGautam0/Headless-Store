@@ -42,7 +42,7 @@ export default function HomePage() {
       </ImageWithText>
       
       <section className="py-12 md:py-20 bg-muted/30">
-        <div className="container">
+        <div className="page-width">
           <h2 className="text-3xl font-bold text-center mb-10">Featured Products</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (

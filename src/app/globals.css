@@ -82,3 +82,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .page-width {
+    @apply max-w-[1400px] mx-auto px-6 md:px-20;
+  }
+}

@@ -23,7 +23,7 @@ export function ImageWithText({
 }: ImageWithTextProps) {
   return (
     <section className="py-12 md:py-20">
-      <div className="container">
+      <div className="page-width">
         <div className={cn(
           "grid md:grid-cols-2 gap-8 md:gap-12 items-center",
           imagePosition === 'right' ? 'md:grid-flow-col-dense' : ''

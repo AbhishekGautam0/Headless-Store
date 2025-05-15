@@ -27,7 +27,7 @@ export default function ContactPage() {
       />
 
       <section className="py-12 md:py-20">
-        <div className="container grid md:grid-cols-2 gap-12 items-start">
+        <div className="page-width grid md:grid-cols-2 gap-12 items-start">
           <div className="space-y-8">
             <h2 className="text-3xl font-bold">Contact Information</h2>
             <p className="text-lg text-muted-foreground">

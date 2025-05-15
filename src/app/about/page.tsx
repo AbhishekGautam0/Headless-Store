@@ -44,14 +44,16 @@ export default function AboutPage() {
       />
       
       <section id="sustainability" className="py-12 md:py-20 bg-muted/30">
-        <div className="container text-center max-w-3xl">
-          <h2 className="text-3xl font-bold mb-6">Our Commitment to Sustainability</h2>
-          <p className="text-lg text-muted-foreground mb-4">
-            We believe that fashion and sustainability can go hand in hand. We are dedicated to minimizing our environmental footprint by choosing sustainable materials, reducing waste in our production processes, and partnering with suppliers who share our commitment to ethical labor practices.
-          </p>
-          <p className="text-lg text-muted-foreground">
-            Our goal is to create products that you can love for a long time, not just for a season. Join us on our journey towards a more sustainable future.
-          </p>
+        <div className="page-width text-center"> {/* max-w-3xl removed to allow page-width to dictate */}
+          <div className="max-w-3xl mx-auto"> {/* Re-apply max-w-3xl internally if desired */}
+            <h2 className="text-3xl font-bold mb-6">Our Commitment to Sustainability</h2>
+            <p className="text-lg text-muted-foreground mb-4">
+              We believe that fashion and sustainability can go hand in hand. We are dedicated to minimizing our environmental footprint by choosing sustainable materials, reducing waste in our production processes, and partnering with suppliers who share our commitment to ethical labor practices.
+            </p>
+            <p className="text-lg text-muted-foreground">
+              Our goal is to create products that you can love for a long time, not just for a season. Join us on our journey towards a more sustainable future.
+            </p>
+          </div>
         </div>
       </section>
     </>
