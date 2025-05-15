@@ -24,20 +24,24 @@ async function shopifyFetch<T>({
   const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
   const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-  const storeDomainPlaceholder = 'your-shop-name.myshopify.com';
-  const tokenPlaceholder = 'your_public_storefront_access_token';
+  const genericDomainPlaceholder = 'your-shop-name.myshopify.com'; // A generic placeholder
+  const genericTokenPlaceholder = 'your_public_storefront_access_token'; // A generic placeholder
 
-  if (!currentShopifyDomain || currentShopifyDomain === storeDomainPlaceholder) {
-    const errorMessage = `Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not configured correctly in your .env.local file. Expected format: your-actual-shop-name.myshopify.com. Current value from process.env: '${currentShopifyDomain}'. Please ensure it's set correctly and restart your development server.`;
-    console.error("Error in shopifyFetch:", errorMessage);
+  if (!currentShopifyDomain || currentShopifyDomain === genericDomainPlaceholder) {
+    const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is missing or incorrect. 
+    Current value from process.env: '${currentShopifyDomain}'.
+    ➡️ Please ensure your .env.local file exists in the project root, contains 'NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=your-actual-shop.myshopify.com', and that you have RESTARTED your development server.`;
+    console.error(errorMessage);
     return { 
         status: 500, 
         body: { errors: [{ message: errorMessage }] } as any 
     };
   }
-  if (!currentShopifyToken || currentShopifyToken === tokenPlaceholder) {
-    const errorMessage = `Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not configured correctly in your .env.local file. Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'. Please ensure it's set to your actual token and restart your development server.`;
-    console.error("Error in shopifyFetch:", errorMessage);
+  if (!currentShopifyToken || currentShopifyToken === genericTokenPlaceholder) {
+    const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN is missing or incorrect. 
+    Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'.
+    ➡️ Please ensure your .env.local file exists in the project root, contains your actual token, and that you have RESTARTED your development server.`;
+    console.error(errorMessage);
     return { 
         status: 500, 
         body: { errors: [{ message: errorMessage }] } as any 
@@ -87,7 +91,7 @@ async function shopifyFetch<T>({
         errorMessage = e.message;
     }
      if (e.cause && (e.cause as any).code === 'ENOTFOUND') {
-      errorMessage = `Could not resolve Shopify domain: ${currentShopifyDomain}. Please ensure NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is correct in .env.local.`;
+      errorMessage = `Could not resolve Shopify domain: ${currentShopifyDomain}. Please ensure NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is correct in .env.local and the server was restarted.`;
       console.error("Error in shopifyFetch (ENOTFOUND):", errorMessage);
     }
     return {
@@ -193,22 +197,7 @@ export async function getProducts({
   sortKey?: string;
   reverse?: boolean;
 }): Promise<{ products: Product[]; pageInfo: PageInfo; error?: string }> {
-  // Read environment variables directly inside the function
-  const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-  const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
-
-  // Initial check for env vars before even attempting a fetch
-  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com') {
-    const errorMsg = `Error in getProducts: Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured in your .env.local file. Current value from process.env: '${currentShopifyDomain}'. Please set it (e.g., your-shop.myshopify.com) and restart your server. Using mock data as fallback.`;
-    console.error(errorMsg);
-    return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMsg };
-  }
-  if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token') {
-    const errorMsg = `Error in getProducts: Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured in your .env.local file. Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'. Please set it and restart your server. Using mock data as fallback.`;
-    console.error(errorMsg);
-    return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMsg };
-  }
-
+  
   const response = await shopifyFetch<{ data?: { products: { edges: Array<{ node: ShopifyProductNode, cursor: string }>, pageInfo: PageInfo } }, errors?: Array<{message: string, extensions?: any}> }>({
     query: GetProductsQuery,
     variables: { first, after, query, sortKey, reverse },
@@ -217,8 +206,14 @@ export async function getProducts({
   if (response.body.errors && response.body.errors.length > 0) {
     const primaryError = response.body.errors[0];
     let errorMessage = primaryError.message;
-     if (primaryError.extensions?.code === 'UNAUTHORIZED') {
-      errorMessage = `UNAUTHORIZED: Shopify API access denied in getProducts. Check your Storefront Access Token, its permissions, and store password status. Token used: ${currentShopifyToken ? currentShopifyToken.substring(0,5) + '...' : 'N/A'}`;
+     // Check if the error message indicates an environment variable issue propagated from shopifyFetch
+    if (errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN")) {
+      console.error("Error in getProducts (propagated from shopifyFetch):", errorMessage);
+      return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMessage };
+    }
+    // Handle other Shopify API errors
+    if (primaryError.extensions?.code === 'UNAUTHORIZED') {
+      errorMessage = `UNAUTHORIZED: Shopify API access denied in getProducts. Check your Storefront Access Token, its permissions, and store password status.`;
     }
     console.error("Error from Shopify API in getProducts:", errorMessage, JSON.stringify(response.body.errors, null, 2));
     return { products: [], pageInfo: { hasNextPage: false, hasPreviousPage: false }, error: errorMessage };
@@ -287,19 +282,6 @@ const GetProductByHandleQuery = `
 `;
 
 export async function getProductByHandle(handle: string): Promise<{product: Product | null; error?: string}> {
-  const currentShopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-  const currentShopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
-
-  if (!currentShopifyDomain || currentShopifyDomain === 'your-shop-name.myshopify.com') {
-    const errorMsg = `Error in getProductByHandle: Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured. Current value from process.env: '${currentShopifyDomain}'. Please set it in .env.local and restart server.`;
-    console.error(errorMsg);
-    return { product: null, error: errorMsg };
-  }
-  if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token') {
-    const errorMsg = `Error in getProductByHandle: Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured. Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'. Please set it in .env.local and restart server.`;
-    console.error(errorMsg);
-    return { product: null, error: errorMsg };
-  }
 
   const response = await shopifyFetch<{ data?: { productByHandle: ShopifyProductNode | null }, errors?: Array<{message: string, extensions?: any}> }>({
     query: GetProductByHandleQuery,
@@ -308,23 +290,31 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
   
   if (response.body.errors && response.body.errors.length > 0) {
     const primaryError = response.body.errors[0];
-     let errorMessage = primaryError.message;
-     if (primaryError.extensions?.code === 'UNAUTHORIZED') {
-      errorMessage = `UNAUTHORIZED: Shopify API access denied for product ${handle} in getProductByHandle. Check your Storefront Access Token, its permissions, and store password status. Token used: ${currentShopifyToken ? currentShopifyToken.substring(0,5) + '...' : 'N/A'}`;
+    let errorMessage = primaryError.message;
+    // Check if the error message indicates an environment variable issue propagated from shopifyFetch
+    if (errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN") || errorMessage.includes("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN")) {
+      console.error(`Error in getProductByHandle for ${handle} (propagated from shopifyFetch):`, errorMessage);
+      return { product: null, error: errorMessage };
+    }
+    // Handle other Shopify API errors
+    if (primaryError.extensions?.code === 'UNAUTHORIZED') {
+      errorMessage = `UNAUTHORIZED: Shopify API access denied for product ${handle} in getProductByHandle. Check your Storefront Access Token, its permissions, and store password status.`;
     }
     console.error(`Error fetching product ${handle} from Shopify in getProductByHandle:`, errorMessage, JSON.stringify(response.body.errors, null, 2));
     return { product: null, error: errorMessage };
   }
 
   if (!response.body.data) {
-     const errorMsg = `Malformed response from Shopify API when fetching product ${handle} in getProductByHandle (no data).`;
+    const errorMsg = `Malformed response from Shopify API when fetching product ${handle} in getProductByHandle (no data).`;
     console.error(errorMsg, "Response body:", response.body);
     return { product: null, error: errorMsg };
   }
 
   if (!response.body.data.productByHandle) {
     const errorMsg = `Product with handle '${handle}' not found or issue with Shopify API response in getProductByHandle.`;
-    return { product: null, error: response.body.data ? undefined : errorMsg };
+    // Do not use mock data for a specific product not found.
+    return { product: null, error: errorMsg };
   }
   return { product: mapShopifyProductToInternal(response.body.data.productByHandle) };
 }
+
