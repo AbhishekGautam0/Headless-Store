@@ -1,3 +1,4 @@
+
 import { Banner } from '@/components/shared/banner';
 import { ImageWithText } from '@/components/shared/image-with-text';
 import type { Metadata } from 'next';
@@ -13,12 +14,14 @@ export default function AboutPage() {
       <Banner
         title="About Shopify Express"
         subtitle="We're passionate about bringing you high-quality products with a seamless shopping experience."
-        imageUrl="/images/about-banner.jpg" // Example local path
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-about-banner.png?v=1700000004" 
         imageAlt="Our team working"
       />
 
       <ImageWithText
-        imageUrl="/images/about-mission.jpg" // Example local path
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-about-mission.png?v=1700000005"
         imageAlt="Person designing clothes"
         title="Our Mission"
         text="Our mission is to provide stylish, durable, and ethically sourced products that empower individuals to express themselves. We believe in quality craftsmanship and exceptional customer service, aiming to build a community around shared values of creativity and conscious consumption."
@@ -26,7 +29,8 @@ export default function AboutPage() {
       />
 
       <ImageWithText
-        imageUrl="/images/about-values.jpg" // Example local path
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-about-values.png?v=1700000006"
         imageAlt="Ethically sourced materials"
         title="Values We Stand By"
         text={

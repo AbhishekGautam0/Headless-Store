@@ -20,7 +20,8 @@ export default async function HomePage() {
       <Banner
         title="Discover Your Style"
         subtitle="High-quality apparel and accessories for the modern individual."
-        imageUrl="/images/home-banner.jpg" // Example local path
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-home-banner.png?v=1700000001" 
         imageAlt="Stylish apparel collection"
       >
         <Button asChild size="lg" className="mt-8">
@@ -29,7 +30,8 @@ export default async function HomePage() {
       </Banner>
 
       <ImageWithText
-        imageUrl="/images/home-comfort-style.jpg" // Example local path
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-home-comfort.png?v=1700000002"
         imageAlt="Models wearing our latest collection"
         title="Crafted for Comfort & Style"
         text="Our collections are designed with passion, focusing on quality materials and timeless designs. Experience the perfect blend of comfort and style that fits your everyday life."
@@ -72,7 +74,8 @@ export default async function HomePage() {
       </section>
 
       <ImageWithText
-        imageUrl="/images/home-sustainable.jpg" // Example local path
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-home-sustainable.png?v=1700000003"
         imageAlt="Sustainable materials"
         title="Sustainable Choices"
         text="We are committed to sustainability. Our products are made with eco-friendly materials and ethical practices, so you can look good and feel good about your choices."

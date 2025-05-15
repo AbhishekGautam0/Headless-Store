@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -25,8 +26,9 @@ export default function ContactPage() {
       <Banner
         title="Get In Touch"
         subtitle="We'd love to hear from you. Reach out with any questions or feedback."
-        // Assuming you might want an image here, or remove imageUrl and imageAlt if not.
-        // imageUrl="/images/contact-banner.jpg" // Example local path, if you have one
+        // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files if desired.
+        // Or remove imageUrl and imageAlt if you prefer no image here.
+        // imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-contact-banner.png?v=1700000007"
         // imageAlt="Contact us background"
       />
 
