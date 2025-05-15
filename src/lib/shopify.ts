@@ -222,10 +222,7 @@ export async function getProducts({
       // Propagate the specific error message from shopifyFetch
       return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMessage };
     }
-    // Handle other Shopify API errors
-    if (primaryError.extensions?.code === 'UNAUTHORIZED') {
-      errorMessage = `UNAUTHORIZED: Shopify API access denied in getProducts. Check your Storefront Access Token, its permissions, and store password status.`;
-    }
+    // Handle other Shopify API errors (UNAUTHORIZED is handled more specifically in shopifyFetch now)
     console.error("Error from Shopify API in getProducts:", errorMessage, JSON.stringify(response.body.errors, null, 2));
     return { products: [], pageInfo: { hasNextPage: false, hasPreviousPage: false }, error: errorMessage };
   }
@@ -307,10 +304,7 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
       console.error(`Error in getProductByHandle for ${handle} (propagated from shopifyFetch):`, errorMessage);
       return { product: null, error: errorMessage };
     }
-    // Handle other Shopify API errors
-    if (primaryError.extensions?.code === 'UNAUTHORIZED') {
-      errorMessage = `UNAUTHORIZED: Shopify API access denied for product ${handle} in getProductByHandle. Check your Storefront Access Token, its permissions, and store password status.`;
-    }
+    // Handle other Shopify API errors (UNAUTHORIZED is handled more specifically in shopifyFetch now)
     console.error(`Error fetching product ${handle} from Shopify in getProductByHandle:`, errorMessage, JSON.stringify(response.body.errors, null, 2));
     return { product: null, error: errorMessage };
   }
