@@ -15,13 +15,13 @@ export default function AboutPage() {
         title="About Shopify Express"
         subtitle="We're passionate about bringing you high-quality products with a seamless shopping experience."
         // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
-        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-about-banner.png?v=1700000004" 
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/8682067b3a9eb637a50f84db1e946a8c61c9f952.png?v=1745861710" 
         imageAlt="Our team working"
       />
 
       <ImageWithText
         // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
-        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-about-mission.png?v=1700000005"
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/2015-05-14_Ashley_Look16_50029_22163_copy.jpg?v=1742985567"
         imageAlt="Person designing clothes"
         title="Our Mission"
         text="Our mission is to provide stylish, durable, and ethically sourced products that empower individuals to express themselves. We believe in quality craftsmanship and exceptional customer service, aiming to build a community around shared values of creativity and conscious consumption."
@@ -30,7 +30,7 @@ export default function AboutPage() {
 
       <ImageWithText
         // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
-        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-about-values.png?v=1700000006"
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/2015-05-14_Ashley_Look3_50048_21859.jpg?v=1742985555"
         imageAlt="Ethically sourced materials"
         title="Values We Stand By"
         text={

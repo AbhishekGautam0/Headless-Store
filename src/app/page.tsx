@@ -21,7 +21,7 @@ export default async function HomePage() {
         title="Discover Your Style"
         subtitle="High-quality apparel and accessories for the modern individual."
         // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
-        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-home-banner.png?v=1700000001" 
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/8682067b3a9eb637a50f84db1e946a8c61c9f952.png?v=1745861710" 
         imageAlt="Stylish apparel collection"
       >
         <Button asChild size="lg" className="mt-8">
@@ -31,7 +31,7 @@ export default async function HomePage() {
 
       <ImageWithText
         // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
-        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-home-comfort.png?v=1700000002"
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/2015-07-02_Ashley_35_51027_24052.jpg?v=1742985844"
         imageAlt="Models wearing our latest collection"
         title="Crafted for Comfort & Style"
         text="Our collections are designed with passion, focusing on quality materials and timeless designs. Experience the perfect blend of comfort and style that fits your everyday life."
@@ -75,7 +75,7 @@ export default async function HomePage() {
 
       <ImageWithText
         // Example Shopify CDN URL. Replace with your actual image URL from Shopify Files.
-        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/example-home-sustainable.png?v=1700000003"
+        imageUrl="https://cdn.shopify.com/s/files/1/0652/9944/7977/files/2015-06-11-Ashley_Look9_50106_23607.jpg?v=1742985612"
         imageAlt="Sustainable materials"
         title="Sustainable Choices"
         text="We are committed to sustainability. Our products are made with eco-friendly materials and ethical practices, so you can look good and feel good about your choices."
