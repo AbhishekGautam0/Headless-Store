@@ -39,14 +39,16 @@ export default function ProductPage() {
           } else if (fetchedProduct) {
             setProduct(fetchedProduct);
             if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
-              // Priority 1: Available for sale AND has stock
+              // Priority 1: A variant that is availableForSale AND has stock > 0
               let bestVariant = fetchedProduct.variants.find(v => v.availableForSale && v.stock > 0);
+              
+              // Priority 2: If none above, find *any* variant that is availableForSale
               if (!bestVariant) {
-                // Priority 2: Available for sale (even if stock is 0, to show its details)
                 bestVariant = fetchedProduct.variants.find(v => v.availableForSale);
               }
+
+              // Priority 3: If still none, fallback to the very first variant
               if (!bestVariant) {
-                // Priority 3: Just the first variant in the list as a last resort
                 bestVariant = fetchedProduct.variants[0];
               }
               setSelectedVariant(bestVariant);
@@ -103,8 +105,6 @@ export default function ProductPage() {
     );
   }
 
-  // This check handles cases where fetchError occurred but wasn't one that should trigger a 404 (e.g. temporary network issue)
-  // It also handles if product is still null after loading for some unexpected reason.
   if (fetchError && (fetchError !== 'Product not found.' && !(fetchError.includes("UNAUTHORIZED") && fetchError.includes("Shopify API access denied"))&& fetchError !== 'Product ID missing.')) {
     return (
       <div className="page-width py-12 text-center">
@@ -125,8 +125,6 @@ export default function ProductPage() {
   }
   
   if (!product) { 
-    // This case should ideally be caught by isLoading or fetchError leading to notFound().
-    // If reached, it means product is null after loading without a specific fetchError handled above.
     return (
         <div className="page-width py-12 text-center">
           <h1 className="text-2xl font-semibold">Product information is currently unavailable.</h1>
@@ -138,10 +136,7 @@ export default function ProductPage() {
       );
   }
   
-  // Product is loaded, now check variants and selectedVariant
   if (product.variants.length === 0 || !selectedVariant) {
-     // This means the product object exists, but it either has no variants defined,
-     // or somehow selectedVariant couldn't be set (e.g. if variants array was empty).
      return (
         <div className="page-width py-12 text-center">
           <h1 className="text-2xl font-semibold">{product.name}</h1>
@@ -155,7 +150,6 @@ export default function ProductPage() {
       );
   }
 
-  // If we reach here, product and selectedVariant are available
   return (
     <div className="page-width py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
@@ -186,7 +180,6 @@ export default function ProductPage() {
 
           <Separator />
           
-          {/* Render variant selector only if there's more than one variant to choose from */}
           {product.variants.length > 1 && (
             <ProductVariantSelector
               variants={product.variants}
@@ -206,5 +199,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
-    

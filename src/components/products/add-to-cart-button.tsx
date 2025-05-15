@@ -15,15 +15,16 @@ interface AddToCartButtonProps extends ButtonProps {
 export function AddToCartButton({ product, selectedVariant, quantity = 1, children, ...props }: AddToCartButtonProps) {
   const { addToCart } = useCart();
 
-  // Determine if the variant can truly be added to cart
-  const canAddToCart = selectedVariant.availableForSale && selectedVariant.stock > 0;
+  // Main condition for addability is Shopify's availableForSale flag.
+  const canAddToCart = selectedVariant.availableForSale;
 
-  // Determine the button text based on availability and stock
   let buttonText = 'Add to Cart';
-  if (!selectedVariant.availableForSale) {
+  if (!canAddToCart) {
     buttonText = 'Not Available';
-  } else if (selectedVariant.stock <= 0) {
-    buttonText = 'Out of Stock';
+  } else if (selectedVariant.stock === 0 && selectedVariant.availableForSale) {
+    // If availableForSale is true but stock is 0, Shopify might allow backorders or it's untracked.
+    // We still show "Add to Cart". The cart provider will handle stock limits if any.
+    buttonText = 'Add to Cart'; 
   }
   
   const isDisabled = !canAddToCart || props.disabled;
@@ -39,5 +40,3 @@ export function AddToCartButton({ product, selectedVariant, quantity = 1, childr
     </Button>
   );
 }
-
-    
