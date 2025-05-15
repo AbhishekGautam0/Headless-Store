@@ -3,8 +3,15 @@
 // NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=your-shop-name.myshopify.com
 // NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN=your_public_storefront_access_token
 
-const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+// Read environment variables at the top level of the module
+const SHOPIFY_STORE_DOMAIN_FROM_ENV = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
+const SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+
+// Log the values read from the environment when the module is loaded
+// This will appear in your server-side console when Next.js starts/rebuilds
+console.log(`[Shopify Lib Startup] NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: '${SHOPIFY_STORE_DOMAIN_FROM_ENV}'`);
+console.log(`[Shopify Lib Startup] NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV ? '******** (loaded)' : 'undefined'}'`);
+
 
 const API_VERSION = '2024-04'; // Or your desired API version
 
@@ -21,31 +28,31 @@ async function shopifyFetch<T>({
   const storeDomainPlaceholder = 'your-shop-name.myshopify.com';
   const tokenPlaceholder = 'your_public_storefront_access_token';
 
-  if (!SHOPIFY_STORE_DOMAIN || SHOPIFY_STORE_DOMAIN === storeDomainPlaceholder) {
-    const errorMessage = `Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not configured correctly in your .env.local file. Expected format: your-actual-shop-name.myshopify.com. Current value: '${SHOPIFY_STORE_DOMAIN}'. Please ensure it's set correctly and restart your development server.`;
-    console.error(errorMessage);
+  if (!SHOPIFY_STORE_DOMAIN_FROM_ENV || SHOPIFY_STORE_DOMAIN_FROM_ENV === storeDomainPlaceholder) {
+    const errorMessage = `Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not configured correctly in your .env.local file. Expected format: your-actual-shop-name.myshopify.com. Current value from env: '${SHOPIFY_STORE_DOMAIN_FROM_ENV}'. Please ensure it's set correctly and restart your development server.`;
+    console.error("Error in shopifyFetch:", errorMessage);
     return { 
         status: 500, 
         body: { errors: [{ message: errorMessage }] } as any 
     };
   }
-  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN || SHOPIFY_STOREFRONT_ACCESS_TOKEN === tokenPlaceholder) {
-    const errorMessage = `Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not configured correctly in your .env.local file. Current value: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN ? '********' : 'undefined'}'. Please ensure it's set to your actual token and restart your development server.`;
-    console.error(errorMessage);
+  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV || SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV === tokenPlaceholder) {
+    const errorMessage = `Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not configured correctly in your .env.local file. Current value from env: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV ? '********' : 'undefined'}'. Please ensure it's set to your actual token and restart your development server.`;
+    console.error("Error in shopifyFetch:", errorMessage);
     return { 
         status: 500, 
         body: { errors: [{ message: errorMessage }] } as any 
     };
   }
 
-  const SHOPIFY_API_ENDPOINT = `https://${SHOPIFY_STORE_DOMAIN}/api/${API_VERSION}/graphql.json`;
+  const SHOPIFY_API_ENDPOINT = `https://${SHOPIFY_STORE_DOMAIN_FROM_ENV}/api/${API_VERSION}/graphql.json`;
 
   try {
     const result = await fetch(SHOPIFY_API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV,
       },
       body: JSON.stringify({ query, variables }),
       cache: 'no-store', 
@@ -54,12 +61,11 @@ async function shopifyFetch<T>({
     const body = await result.json();
 
     if (body.errors) {
-      console.error('Shopify API Error:', JSON.stringify(body.errors, null, 2));
-      // Check for specific unauthorized error to provide a more helpful message
+      console.error('Shopify API Error in shopifyFetch:', JSON.stringify(body.errors, null, 2));
       const isUnauthorized = body.errors.some((err: any) => err.extensions?.code === 'UNAUTHORIZED' || err.message?.toLowerCase().includes('unauthorized'));
       if (isUnauthorized) {
-         const specificError = `Shopify API Error: UNAUTHORIZED. Please check if your Storefront Access Token is correct, has the necessary permissions (e.g., unauthenticated_read_product_listings), and that your store is not password protected. Token used: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN ? SHOPIFY_STOREFRONT_ACCESS_TOKEN.substring(0,5) + '...' : 'N/A'}`;
-         console.error(specificError);
+         const specificError = `Shopify API Error: UNAUTHORIZED. Please check if your Storefront Access Token is correct, has the necessary permissions (e.g., unauthenticated_read_product_listings), and that your store is not password protected. Token used: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV ? SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV.substring(0,5) + '...' : 'N/A'}`;
+         console.error("Error in shopifyFetch (Unauthorized):", specificError);
          return {
           status: result.status,
           body: { errors: [{ message: specificError, originalErrors: body.errors }] } as any,
@@ -76,14 +82,14 @@ async function shopifyFetch<T>({
       body,
     };
   } catch (e: any) {
-    console.error('Fetch Error to Shopify API:', e);
+    console.error('Fetch Error to Shopify API in shopifyFetch:', e);
     let errorMessage = 'Failed to fetch from Shopify API.';
     if (e.message) {
         errorMessage = e.message;
     }
      if (e.cause && (e.cause as any).code === 'ENOTFOUND') {
-      errorMessage = `Could not resolve Shopify domain: ${SHOPIFY_STORE_DOMAIN}. Please ensure NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is correct in .env.local.`;
-      console.error(errorMessage);
+      errorMessage = `Could not resolve Shopify domain: ${SHOPIFY_STORE_DOMAIN_FROM_ENV}. Please ensure NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN is correct in .env.local.`;
+      console.error("Error in shopifyFetch (ENOTFOUND):", errorMessage);
     }
     return {
         status: 503, 
@@ -189,13 +195,13 @@ export async function getProducts({
   reverse?: boolean;
 }): Promise<{ products: Product[]; pageInfo: PageInfo; error?: string }> {
   // Initial check for env vars before even attempting a fetch
-  if (!SHOPIFY_STORE_DOMAIN || SHOPIFY_STORE_DOMAIN === 'your-shop-name.myshopify.com') {
-    const errorMsg = `Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured in your .env.local file. Current value: '${SHOPIFY_STORE_DOMAIN}'. Please set it and restart your server. Using mock data as fallback.`;
+  if (!SHOPIFY_STORE_DOMAIN_FROM_ENV || SHOPIFY_STORE_DOMAIN_FROM_ENV === 'your-shop-name.myshopify.com') {
+    const errorMsg = `Error in getProducts: Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured in your .env.local file. Current value from env: '${SHOPIFY_STORE_DOMAIN_FROM_ENV}'. Please set it (e.g., your-shop.myshopify.com) and restart your server. Using mock data as fallback.`;
     console.error(errorMsg);
     return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMsg };
   }
-  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN || SHOPIFY_STOREFRONT_ACCESS_TOKEN === 'your_public_storefront_access_token') {
-    const errorMsg = `Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured in your .env.local file. Current value: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN ? '********' : 'undefined'}'. Please set it and restart your server. Using mock data as fallback.`;
+  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV || SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV === 'your_public_storefront_access_token') {
+    const errorMsg = `Error in getProducts: Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured in your .env.local file. Current value from env: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV ? '********' : 'undefined'}'. Please set it and restart your server. Using mock data as fallback.`;
     console.error(errorMsg);
     return { products: mockProducts.slice(0, first), pageInfo: { hasNextPage: mockProducts.length > first, hasPreviousPage: false }, error: errorMsg };
   }
@@ -209,14 +215,14 @@ export async function getProducts({
     const primaryError = response.body.errors[0];
     let errorMessage = primaryError.message;
      if (primaryError.extensions?.code === 'UNAUTHORIZED') {
-      errorMessage = `UNAUTHORIZED: Shopify API access denied. Check your Storefront Access Token, its permissions, and store password status. Token used: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN.substring(0,5)}...`;
+      errorMessage = `UNAUTHORIZED: Shopify API access denied in getProducts. Check your Storefront Access Token, its permissions, and store password status. Token used: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV.substring(0,5)}...`;
     }
-    console.error("Error fetching products from Shopify:", errorMessage, JSON.stringify(response.body.errors, null, 2));
+    console.error("Error from Shopify API in getProducts:", errorMessage, JSON.stringify(response.body.errors, null, 2));
     return { products: [], pageInfo: { hasNextPage: false, hasPreviousPage: false }, error: errorMessage };
   }
   
   if (!response.body.data || !response.body.data.products) {
-    const errorMsg = "Malformed response from Shopify API when fetching products (no data.products).";
+    const errorMsg = "Malformed response from Shopify API in getProducts (no data.products).";
     console.error(errorMsg, "Response body:", response.body);
     return { products: [], pageInfo: { hasNextPage: false, hasPreviousPage: false }, error: errorMsg };
   }
@@ -278,14 +284,13 @@ const GetProductByHandleQuery = `
 `;
 
 export async function getProductByHandle(handle: string): Promise<{product: Product | null; error?: string}> {
-    // Initial check for env vars
-  if (!SHOPIFY_STORE_DOMAIN || SHOPIFY_STORE_DOMAIN === 'your-shop-name.myshopify.com') {
-    const errorMsg = `Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured for getProductByHandle. Current value: '${SHOPIFY_STORE_DOMAIN}'. Please set it in .env.local and restart server.`;
+  if (!SHOPIFY_STORE_DOMAIN_FROM_ENV || SHOPIFY_STORE_DOMAIN_FROM_ENV === 'your-shop-name.myshopify.com') {
+    const errorMsg = `Error in getProductByHandle: Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not properly configured. Current value from env: '${SHOPIFY_STORE_DOMAIN_FROM_ENV}'. Please set it in .env.local and restart server.`;
     console.error(errorMsg);
     return { product: null, error: errorMsg };
   }
-  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN || SHOPIFY_STOREFRONT_ACCESS_TOKEN === 'your_public_storefront_access_token') {
-    const errorMsg = `Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured for getProductByHandle. Current value: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN ? '********' : 'undefined'}'. Please set it in .env.local and restart server.`;
+  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV || SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV === 'your_public_storefront_access_token') {
+    const errorMsg = `Error in getProductByHandle: Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not properly configured. Current value from env: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV ? '********' : 'undefined'}'. Please set it in .env.local and restart server.`;
     console.error(errorMsg);
     return { product: null, error: errorMsg };
   }
@@ -299,24 +304,23 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
     const primaryError = response.body.errors[0];
      let errorMessage = primaryError.message;
      if (primaryError.extensions?.code === 'UNAUTHORIZED') {
-      errorMessage = `UNAUTHORIZED: Shopify API access denied for product ${handle}. Check your Storefront Access Token, its permissions, and store password status. Token used: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN.substring(0,5)}...`;
+      errorMessage = `UNAUTHORIZED: Shopify API access denied for product ${handle} in getProductByHandle. Check your Storefront Access Token, its permissions, and store password status. Token used: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN_FROM_ENV.substring(0,5)}...`;
     }
-    console.error(`Error fetching product ${handle} from Shopify:`, errorMessage, JSON.stringify(response.body.errors, null, 2));
+    console.error(`Error fetching product ${handle} from Shopify in getProductByHandle:`, errorMessage, JSON.stringify(response.body.errors, null, 2));
     return { product: null, error: errorMessage };
   }
 
   if (!response.body.data) {
-     const errorMsg = `Malformed response from Shopify API when fetching product ${handle} (no data).`;
+     const errorMsg = `Malformed response from Shopify API when fetching product ${handle} in getProductByHandle (no data).`;
     console.error(errorMsg, "Response body:", response.body);
     return { product: null, error: errorMsg };
   }
 
   if (!response.body.data.productByHandle) {
-    // Product genuinely not found by handle, or an issue caused it to be null
-    const errorMsg = `Product with handle '${handle}' not found or issue with Shopify API response.`;
-    // console.warn(errorMsg); // Not necessarily an error if product just doesn't exist
-    return { product: null, error: response.body.data ? undefined : errorMsg }; // No error if not found, error if malformed
+    const errorMsg = `Product with handle '${handle}' not found or issue with Shopify API response in getProductByHandle.`;
+    return { product: null, error: response.body.data ? undefined : errorMsg };
   }
   return { product: mapShopifyProductToInternal(response.body.data.productByHandle) };
 }
 
+    
