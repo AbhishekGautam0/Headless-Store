@@ -18,8 +18,8 @@ async function shopifyFetch<T>({
   query: string;
   variables?: Record<string, any>;
 }): Promise<{ status: number; body: T } | never> {
-  if (!SHOPIFY_STORE_DOMAIN || SHOPIFY_STORE_DOMAIN === 'your-shop-name.myshopify.com') {
-    const errorMessage = "Shopify store domain is not configured correctly. Please set NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN in your .env.local file.";
+  if (!SHOPIFY_STORE_DOMAIN || SHOPIFY_STORE_DOMAIN === 'your-shop-name.myshopify.com' || SHOPIFY_STORE_DOMAIN === 'techifyservices') { // Added check for old hardcoded value possibility
+    const errorMessage = `Shopify store domain (NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN) is not configured correctly in your .env.local file. Expected format: your-actual-shop-name.myshopify.com. Current value: '${SHOPIFY_STORE_DOMAIN}'. Please ensure it's set correctly and restart your development server.`;
     console.error(errorMessage);
     return { 
         status: 500, 
@@ -27,7 +27,7 @@ async function shopifyFetch<T>({
     };
   }
   if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN || SHOPIFY_STOREFRONT_ACCESS_TOKEN === 'your_public_storefront_access_token') {
-    const errorMessage = "Shopify Storefront Access Token is not configured. Please set NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN in your .env.local file.";
+    const errorMessage = `Shopify Storefront Access Token (NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN) is not configured correctly in your .env.local file. Please ensure it's set to your actual token and restart your development server. Current value: '${SHOPIFY_STOREFRONT_ACCESS_TOKEN ? '********' : undefined}'.`;
     console.error(errorMessage);
     return { 
         status: 500, 
@@ -36,7 +36,8 @@ async function shopifyFetch<T>({
   }
 
   try {
-    const result = await fetch(SHOPIFY_API_ENDPOINT, {
+    const dynamicShopifyApiEndpoint = `https://${SHOPIFY_STORE_DOMAIN}/api/${API_VERSION}/graphql.json`;
+    const result = await fetch(dynamicShopifyApiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,9 +51,8 @@ async function shopifyFetch<T>({
 
     if (body.errors) {
       console.error('Shopify API Error:', body.errors);
-      // Provide a more specific error structure if possible
       return {
-        status: result.status, // Or a specific error status like 401 if applicable
+        status: result.status,
         body: { errors: body.errors } as any,
       };
     }
@@ -67,9 +67,8 @@ async function shopifyFetch<T>({
     if (e.message) {
         errorMessage = e.message;
     }
-    // If it's a network error or similar, the structure might not be a Shopify error
     return {
-        status: 503, // Service Unavailable or appropriate error
+        status: 503, 
         body: { errors: [{ message: errorMessage, details: e.toString() }] } as any,
     };
   }
@@ -183,8 +182,9 @@ export async function getProducts({
   }
   
   if (!response.body.data || !response.body.data.products) {
-    console.error("Error fetching products: No data.products returned from Shopify API or malformed response.");
-    return { products: [], pageInfo: { hasNextPage: false, hasPreviousPage: false }, error: "Malformed response from Shopify API." };
+    const errorMsg = "Malformed response from Shopify API when fetching products (no data.products).";
+    console.error(errorMsg, "Response body:", response.body);
+    return { products: [], pageInfo: { hasNextPage: false, hasPreviousPage: false }, error: errorMsg };
   }
 
   const products = response.body.data.products.edges.map(edge => mapShopifyProductToInternal(edge.node));
@@ -256,8 +256,9 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
   }
 
   if (!response.body.data) {
-    console.error(`Error fetching product ${handle}: No data returned from Shopify API or malformed response.`);
-    return { product: null, error: "Malformed response from Shopify API." };
+     const errorMsg = `Malformed response from Shopify API when fetching product ${handle} (no data).`;
+    console.error(errorMsg, "Response body:", response.body);
+    return { product: null, error: errorMsg };
   }
 
   if (!response.body.data.productByHandle) {
@@ -265,3 +266,4 @@ export async function getProductByHandle(handle: string): Promise<{product: Prod
   }
   return { product: mapShopifyProductToInternal(response.body.data.productByHandle) };
 }
+
