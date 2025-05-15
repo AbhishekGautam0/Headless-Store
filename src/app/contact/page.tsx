@@ -1,17 +1,13 @@
 'use client';
 
-import { useEffect } from 'react'; // Added useEffect
+import { useEffect } from 'react';
 import { Banner } from '@/components/shared/banner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import type { Metadata } from 'next'; // Metadata type import no longer needed here
 import { Mail, Phone, MapPin } from 'lucide-react';
-
-// Metadata export removed as this is a Client Component.
-// Page title will be set using useEffect.
 
 export default function ContactPage() {
   useEffect(() => {
@@ -29,6 +25,9 @@ export default function ContactPage() {
       <Banner
         title="Get In Touch"
         subtitle="We'd love to hear from you. Reach out with any questions or feedback."
+        // Assuming you might want an image here, or remove imageUrl and imageAlt if not.
+        // imageUrl="/images/contact-banner.jpg" // Example local path, if you have one
+        // imageAlt="Contact us background"
       />
 
       <section className="py-12 md:py-20">

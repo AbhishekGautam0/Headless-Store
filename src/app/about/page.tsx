@@ -13,24 +13,21 @@ export default function AboutPage() {
       <Banner
         title="About Shopify Express"
         subtitle="We're passionate about bringing you high-quality products with a seamless shopping experience."
-        imageUrl="https://placehold.co/1920x800.png"
+        imageUrl="/images/about-banner.jpg" // Example local path
         imageAlt="Our team working"
-        imageAiHint="team collaboration"
       />
 
       <ImageWithText
-        imageUrl="https://placehold.co/800x600.png"
+        imageUrl="/images/about-mission.jpg" // Example local path
         imageAlt="Person designing clothes"
-        imageAiHint="fashion design"
         title="Our Mission"
         text="Our mission is to provide stylish, durable, and ethically sourced products that empower individuals to express themselves. We believe in quality craftsmanship and exceptional customer service, aiming to build a community around shared values of creativity and conscious consumption."
         imagePosition="left"
       />
 
       <ImageWithText
-        imageUrl="https://placehold.co/800x600.png"
+        imageUrl="/images/about-values.jpg" // Example local path
         imageAlt="Ethically sourced materials"
-        imageAiHint="sustainable fabric"
         title="Values We Stand By"
         text={
           <ul className="list-disc list-inside space-y-2 text-muted-foreground text-lg">
@@ -44,8 +41,8 @@ export default function AboutPage() {
       />
       
       <section id="sustainability" className="py-12 md:py-20 bg-muted/30">
-        <div className="page-width text-center"> {/* max-w-3xl removed to allow page-width to dictate */}
-          <div className="max-w-3xl mx-auto"> {/* Re-apply max-w-3xl internally if desired */}
+        <div className="page-width text-center">
+          <div className="max-w-3xl mx-auto"> 
             <h2 className="text-3xl font-bold mb-6">Our Commitment to Sustainability</h2>
             <p className="text-lg text-muted-foreground mb-4">
               We believe that fashion and sustainability can go hand in hand. We are dedicated to minimizing our environmental footprint by choosing sustainable materials, reducing waste in our production processes, and partnering with suppliers who share our commitment to ethical labor practices.

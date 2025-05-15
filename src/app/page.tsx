@@ -20,9 +20,8 @@ export default async function HomePage() {
       <Banner
         title="Discover Your Style"
         subtitle="High-quality apparel and accessories for the modern individual."
-        imageUrl="https://placehold.co/1920x1080.png"
+        imageUrl="/images/home-banner.jpg" // Example local path
         imageAlt="Stylish apparel collection"
-        imageAiHint="fashion lifestyle"
       >
         <Button asChild size="lg" className="mt-8">
           <Link href="/shop">Shop Now</Link>
@@ -30,9 +29,8 @@ export default async function HomePage() {
       </Banner>
 
       <ImageWithText
-        imageUrl="https://placehold.co/800x600.png"
+        imageUrl="/images/home-comfort-style.jpg" // Example local path
         imageAlt="Models wearing our latest collection"
-        imageAiHint="fashion models"
         title="Crafted for Comfort & Style"
         text="Our collections are designed with passion, focusing on quality materials and timeless designs. Experience the perfect blend of comfort and style that fits your everyday life."
         imagePosition="left"
@@ -74,9 +72,8 @@ export default async function HomePage() {
       </section>
 
       <ImageWithText
-        imageUrl="https://placehold.co/800x600.png"
+        imageUrl="/images/home-sustainable.jpg" // Example local path
         imageAlt="Sustainable materials"
-        imageAiHint="eco friendly"
         title="Sustainable Choices"
         text="We are committed to sustainability. Our products are made with eco-friendly materials and ethical practices, so you can look good and feel good about your choices."
         imagePosition="right"

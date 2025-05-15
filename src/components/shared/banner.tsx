@@ -4,25 +4,25 @@ import Image from 'next/image';
 interface BannerProps {
   title: string;
   subtitle?: string;
-  imageUrl?: string;
+  imageUrl?: string; // Will now be a path like /images/my-banner.jpg
   imageAlt?: string;
-  imageAiHint?: string;
+  // imageAiHint removed as it's for placeholders
   children?: ReactNode;
 }
 
-export function Banner({ title, subtitle, imageUrl, imageAlt, imageAiHint, children }: BannerProps) {
+export function Banner({ title, subtitle, imageUrl, imageAlt, children }: BannerProps) {
   const hasImage = imageUrl && imageAlt;
 
   return (
     <section className={`relative py-16 md:py-24 ${hasImage ? 'text-white' : 'bg-muted/30'}`}>
       {hasImage && (
         <Image
-          src={imageUrl}
+          src={imageUrl} // e.g., /images/banner.jpg
           alt={imageAlt}
           fill
           className="object-cover z-0"
           priority
-          data-ai-hint={imageAiHint || "banner background"}
+          // data-ai-hint removed
         />
       )}
       {hasImage && <div className="absolute inset-0 bg-black/50 z-0"></div>}

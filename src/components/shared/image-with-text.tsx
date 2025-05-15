@@ -3,9 +3,9 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface ImageWithTextProps {
-  imageUrl: string;
+  imageUrl: string; // Will now be a path like /images/my-image.jpg
   imageAlt: string;
-  imageAiHint?: string;
+  // imageAiHint removed
   title: string;
   text: string | ReactNode;
   imagePosition?: 'left' | 'right';
@@ -15,7 +15,6 @@ interface ImageWithTextProps {
 export function ImageWithText({
   imageUrl,
   imageAlt,
-  imageAiHint,
   title,
   text,
   imagePosition = 'left',
@@ -33,12 +32,12 @@ export function ImageWithText({
             imagePosition === 'right' ? 'md:col-start-2' : ''
           )}>
             <Image
-              src={imageUrl}
+              src={imageUrl} // e.g., /images/image.jpg
               alt={imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
-              data-ai-hint={imageAiHint || "section image"}
+              // data-ai-hint removed
             />
           </div>
           <div className="space-y-4">
