@@ -41,7 +41,7 @@ async function shopifyFetch<T>({
   if (!currentShopifyToken || currentShopifyToken === 'your_public_storefront_access_token' /* old placeholder check */) {
     const errorMessage = `Critical Error in shopifyFetch: NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN is missing or incorrect. 
     Current value from process.env: '${currentShopifyToken ? '********' : 'undefined'}'.
-    ➡️ Please ensure your .env.local file exists in the project root, contains your actual token, and that you have RESTARTED your development server.`;
+    ➡️ Please ensure your .env.local file exists in the project root, contains your actual **Public Storefront Access Token** (usually starts with 'shpat_'), and that you have RESTARTED your development server.`;
     console.error(errorMessage);
     return { 
         status: 500, 
@@ -77,7 +77,12 @@ async function shopifyFetch<T>({
       console.error('Shopify API Error in shopifyFetch:', JSON.stringify(body.errors, null, 2));
       const isUnauthorized = body.errors.some((err: any) => err.extensions?.code === 'UNAUTHORIZED' || err.message?.toLowerCase().includes('unauthorized'));
       if (isUnauthorized) {
-         const specificError = `Shopify API Error: UNAUTHORIZED. Please check if your Storefront Access Token is correct, has the necessary permissions (e.g., unauthenticated_read_product_listings), and that your store is not password protected. Token used: ${currentShopifyToken ? currentShopifyToken.substring(0,5) + '...' : 'N/A'}`;
+         const specificError = `Shopify API Error: UNAUTHORIZED. 
+         ➡️ Please check:
+         1. Is NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN in .env.local your correct **Public Storefront Access Token** (usually starts with 'shpat_') and not an Admin API key?
+         2. Does the token have the necessary permissions (e.g., unauthenticated_read_product_listings)?
+         3. Is your Shopify store password protection disabled?
+         Token used (first 5 chars): ${currentShopifyToken ? currentShopifyToken.substring(0,5) + '...' : 'N/A'}`;
          console.error("Error in shopifyFetch (Unauthorized):", specificError);
          return {
           status: result.status,
