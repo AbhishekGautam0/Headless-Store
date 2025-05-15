@@ -16,26 +16,24 @@ export function AddToCartButton({ product, selectedVariant, quantity = 1, childr
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    // selectedVariant.stock should be quantityAvailable from Shopify
-    // selectedVariant.availableForSale is also important
-    if (selectedVariant.availableForSale && selectedVariant.stock > 0) {
+    if (selectedVariant.availableForSale) { // Relying primarily on availableForSale
       addToCart(product, selectedVariant, quantity);
     } else {
-      // Toast is handled by addToCart if stock limit is hit
-      console.warn("Attempted to add out of stock or unavailable item.");
+      console.warn("Attempted to add unavailable item.");
+      // Toast for "unavailable" could be added in useCart or here if preferred
     }
   };
 
-  const isOutOfStock = !selectedVariant.availableForSale || selectedVariant.stock <= 0;
+  const isUnavailable = !selectedVariant.availableForSale;
 
   return (
     <Button 
       onClick={handleAddToCart} 
-      disabled={isOutOfStock || props.disabled}
+      disabled={isUnavailable || props.disabled} // props.disabled allows external override
       {...props}
     >
       <ShoppingCart className="mr-2 h-4 w-4" />
-      {isOutOfStock ? 'Out of Stock' : children || 'Add to Cart'}
+      {children ? children : (isUnavailable ? 'Out of Stock' : 'Add to Cart')}
     </Button>
   );
 }

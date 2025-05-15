@@ -39,9 +39,9 @@ export default function ProductPage() {
           } else if (fetchedProduct) {
             setProduct(fetchedProduct);
             if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
-              // Prioritize selecting a variant that is available for sale AND has stock
-              const initiallyAvailableVariant = fetchedProduct.variants.find(v => v.availableForSale && v.stock > 0);
-              setSelectedVariant(initiallyAvailableVariant || fetchedProduct.variants[0]);
+              // Prioritize selecting a variant that is available for sale
+              const initiallyAvailableVariant = fetchedProduct.variants.find(v => v.availableForSale);
+              setSelectedVariant(initiallyAvailableVariant || fetchedProduct.variants[0]); // Fallback to the first variant
             } else {
               setSelectedVariant(null); // No variants for this product
             }
@@ -192,10 +192,7 @@ export default function ProductPage() {
             selectedVariant={selectedVariant}
             className="w-full text-lg py-6"
             size="lg"
-            disabled={!selectedVariant.availableForSale || selectedVariant.stock <= 0}
-          >
-            {(!selectedVariant.availableForSale || selectedVariant.stock <= 0) ? 'Out of Stock' : 'Add to Cart'}
-          </AddToCartButton>
+          />
         </div>
       </div>
     </div>

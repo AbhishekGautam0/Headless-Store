@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Variant } from '@/lib/types';
@@ -52,17 +53,17 @@ export function ProductVariantSelector({
                 selectedVariant.id === variant.id
                   ? "border-primary bg-primary/10 text-primary ring-2 ring-primary"
                   : "border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
-                (!variant.availableForSale || variant.stock <= 0) ? "cursor-not-allowed opacity-50 line-through" : ""
+                !variant.availableForSale ? "cursor-not-allowed opacity-50 line-through" : ""
               )}
             >
               <RadioGroupItem
                 value={variant.id}
                 id={`variant-${variant.id}`}
                 className="sr-only"
-                disabled={!variant.availableForSale || variant.stock <= 0}
+                disabled={!variant.availableForSale}
               />
               {variant.name}
-               {(!variant.availableForSale || variant.stock <= 0) && <span className="ml-1 text-xs">(Out of stock)</span>}
+               {!variant.availableForSale && <span className="ml-1 text-xs">(Out of stock)</span>}
             </Label>
           ))}
         </RadioGroup>
@@ -72,7 +73,7 @@ export function ProductVariantSelector({
           Only {selectedVariant.stock} left in stock!
         </p>
       )}
-       {(!selectedVariant.availableForSale || selectedVariant.stock <= 0) && (
+       {!selectedVariant.availableForSale && (
         <p className="text-sm text-destructive">
           This option is currently out of stock.
         </p>
